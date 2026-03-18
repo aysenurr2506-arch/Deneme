@@ -3,213 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Verimlilik & Finans Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Pro Finans - Renkli Analiz</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #764ba2; --secondary: #667eea; --bg: #f8f9fd; --excel: #27ae60; --danger: #e74c3c; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #333; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        :root { 
+            --primary: #764ba2; --secondary: #667eea; --bg: #f8f9fd; 
+            --green: #2ecc71; --cat-yemek: #f39c12; --cat-ulasim: #3498db; 
+            --cat-eglence: #e91e63; --cat-diger: #95a5a6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding: 15px; }
+        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
         .balance-card { background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: white; text-align: center; }
-        .balance-amount { font-size: 3rem; font-weight: 800; margin: 10px 0; }
-
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        .grid-2 { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        @media (max-width: 850px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
-
-        .budget-item { margin-bottom: 15px; }
-        .budget-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; font-weight: 600; }
-        .progress-bg { background: #eee; height: 10px; border-radius: 10px; overflow: hidden; }
-        .progress-fill { background: var(--primary); height: 100%; transition: 0.5s; width: 0%; }
-
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 5px; outline: none; }
-        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .btn-excel { background: var(--excel); }
-
-        .history-list { max-height: 300px; overflow-y: auto; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f5f5f5; align-items: center; }
-        
-        /* Silme butonu stili */
-        .delete-btn { color: #ccc; cursor: pointer; transition: 0.2s; margin-left: 15px; border: none; background: none; }
-        .delete-btn:hover { color: var(--danger); }
-
-        .hidden { display: none; }
+        .balance-amount { font-size: 2.8rem; font-weight: 800; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .chart-box { display: flex; justify-content: center; align-items: center; min-height: 180px; }
+        .pure-pie {
+            width: 150px; height: 150px; border-radius: 50%;
+            background: var(--green); display: flex; align-items: center; justify-content: center;
+            position: relative; transition: 0.5s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .pure-pie::after { content: ""; position: absolute; width: 110px; height: 110px; background: white; border-radius: 50%; }
+        .pie-val { position: absolute; z-index: 5; font-weight: 800; font-size: 1.4rem; color: #333; }
+        .prog-bg { background: #eee; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .prog-fill { background: var(--primary); height: 100%; width: 0%; transition: 0.5s; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-top: 10px; outline: none; }
+        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .cat-tag { padding: 4px 10px; border-radius: 6px; color: white; font-size: 0.75rem; font-weight: bold; }
+        .edit-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.7rem; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="setupScreen" class="card" style="text-align: center; max-width: 500px; margin: 50px auto;">
-        <i class="fas fa-coins fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
-        <h2>Finansal Hedeflerini Belirle</h2>
-        <input type="number" id="initialBalance" placeholder="Toplam Bakiyeniz (₺)">
-        <input type="number" id="monthlyBudget" placeholder="Aylık Harcama Limitiniz (₺)" style="margin-top:10px;">
-        <button class="btn" onclick="startApp()">Sistemi Başlat</button>
+<div id="setupArea">
+    <div class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
+        <h2 style="color:var(--primary)">Finansal Başlangıç</h2>
+        <input type="number" id="startBal" placeholder="Bakiye">
+        <input type="number" id="startLim" placeholder="Harcama Limiti">
+        <button class="btn" onclick="initSystem()">Başlat</button>
     </div>
+</div>
 
-    <div id="mainDashboard" class="hidden">
-        <div class="grid-3">
-            <div class="card balance-card">
-                <p>Mevcut Bakiye</p>
-                <div class="balance-amount" id="displayBalance">0 ₺</div>
-            </div>
-            <div class="card">
-                <h3><i class="fas fa-bullseye"></i> Bütçe Durumu</h3>
-                <div id="budgetBars"></div>
-            </div>
-            <div class="card">
-                <canvas id="pieChart"></canvas>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="card">
-                <h3><i class="fas fa-plus"></i> Harcama Ekle</h3>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div><label>Miktar</label><input type="number" id="expAmount"></div>
-                    <div>
-                        <label>Kategori</label>
-                        <select id="expCategory">
-                            <option value="Yemek">Yemek</option>
-                            <option value="Ulaşım">Ulaşım</option>
-                            <option value="Eğlence">Eğlence</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn" onclick="addExpense()">Harcamayı Kaydet</button>
-                <button class="btn btn-excel" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel"></i> Excel Raporu Al
-                </button>
-            </div>
-            
-            <div class="card">
-                <h3>Son İşlemler</h3>
-                <div id="historyList" class="history-list"></div>
-            </div>
+<div id="dashArea" class="hidden">
+    <div class="grid">
+        <div class="card balance-card">
+            <button class="edit-btn" onclick="openPop('bal')">DÜZENLE</button>
+            <p>Mevcut Bakiye</p>
+            <div class="balance-amount" id="valBal">0 ₺</div>
         </div>
 
         <div class="card">
-            <h3><i class="fas fa-chart-line"></i> Haftalık Harcama Analizi</h3>
-            <canvas id="lineChart" style="max-height: 250px;"></canvas>
+            <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                Limit Durumu 
+                <i class="fas fa-cog" style="cursor:pointer; color:#ccc; font-size:1rem;" onclick="openPop('lim')"></i>
+            </h3>
+            <div id="budgetInfo" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <h3>Harcama Analizi</h3>
+            <div class="chart-box">
+                <div class="pure-pie" id="pieChart">
+                    <div class="pie-val" id="valPerc">%0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Harcama Ekle</h3>
+            <input type="number" id="hMik" placeholder="Miktar (₺)">
+            <select id="hKat">
+                <option value="Yemek">🍔 Yemek</option>
+                <option value="Ulaşım">🚕 Ulaşım</option>
+                <option value="Eğlence">🍿 Eğlence</option>
+                <option value="Diğer">📦 Diğer</option>
+            </select>
+            <button class="btn" onclick="saveExpense()">Kaydet</button>
+        </div>
+
+        <div class="card">
+            <h3>Geçmiş</h3>
+            <div id="hList" style="max-height: 250px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="modalPop" class="modal">
+    <div class="modal-content">
+        <h2 id="popTitle" style="color:var(--primary); margin-bottom:10px;">Düzenle</h2>
+        <input type="number" id="popInp" style="margin-bottom:15px;">
+        <div style="display:flex; gap:10px;">
+            <button class="btn" style="background:#eee; color:#333; margin:0;" onclick="closePop()">Vazgeç</button>
+            <button class="btn" style="margin:0;" onclick="confirmPop()">Kaydet</button>
         </div>
     </div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('finData')) || { balance: 0, limit: 0, expenses: [] };
-    let pieChart, lineChart;
+    let myData = JSON.parse(localStorage.getItem('fin_v_colored_final')) || { bakiye: 0, limit: 0, harcamalar: [] };
+    let activeType = '';
+    const colors = { "Yemek": "#f39c12", "Ulaşım": "#3498db", "Eğlence": "#e91e63", "Diğer": "#95a5a6", "Kalan": "#2ecc71" };
 
-    if(data.balance > 0) showDashboard();
+    if(myData.bakiye > 0) startUI();
 
-    function startApp() {
-        data.balance = parseFloat(document.getElementById('initialBalance').value);
-        data.limit = parseFloat(document.getElementById('monthlyBudget').value);
-        if(data.balance > 0) {
-            save();
-            showDashboard();
+    function initSystem() {
+        const b = parseFloat(document.getElementById('startBal').value);
+        const l = parseFloat(document.getElementById('startLim').value);
+        if(b > 0) { myData.bakiye = b; myData.limit = l || b; updateData(); startUI(); }
+    }
+
+    function startUI() {
+        document.getElementById('setupArea').classList.add('hidden');
+        document.getElementById('dashArea').classList.remove('hidden');
+        refreshUI();
+    }
+
+    function saveExpense() {
+        const m = parseFloat(document.getElementById('hMik').value);
+        const k = document.getElementById('hKat').value;
+        if(m > 0) {
+            myData.harcamalar.push({ m, k, d: new Date().toLocaleDateString('tr-TR'), id: Date.now() });
+            document.getElementById('hMik').value = "";
+            updateData(); refreshUI();
         }
     }
 
-    function showDashboard() {
-        document.getElementById('setupScreen').classList.add('hidden');
-        document.getElementById('mainDashboard').classList.remove('hidden');
-        initCharts();
-        updateUI();
-    }
+    function refreshUI() {
+        const toplamH = myData.harcamalar.reduce((t, x) => t + x.m, 0);
+        const yuzdeGenel = myData.limit > 0 ? Math.min((toplamH / myData.limit) * 100, 100) : 0;
 
-    function addExpense() {
-        const amt = parseFloat(document.getElementById('expAmount').value);
-        const cat = document.getElementById('expCategory').value;
-        if(amt > 0) {
-            // Her harcamaya benzersiz bir ID (tarih damgası) ekliyoruz
-            data.expenses.push({ id: Date.now(), amt, cat, date: new Date().toISOString() });
-            save();
-            updateUI();
-            updateCharts();
-            document.getElementById('expAmount').value = "";
-        }
-    }
-
-    // YENİ: Harcama silme fonksiyonu
-    function deleteExpense(id) {
-        if(confirm("Bu harcamayı silmek istediğine emin misin?")) {
-            data.expenses = data.expenses.filter(e => e.id !== id);
-            save();
-            updateUI();
-            updateCharts();
-        }
-    }
-
-    function exportToExcel() {
-        if(data.expenses.length === 0) return alert("Henüz kayıtlı bir harcama yok!");
-        const worksheetData = data.expenses.map(e => ({
-            "Kategori": e.cat,
-            "Miktar (₺)": e.amt,
-            "Tarih": new Date(e.date).toLocaleString('tr-TR')
-        }));
-        const ws = XLSX.utils.json_to_sheet(worksheetData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Harcamalar");
-        XLSX.writeFile(wb, "Harcama_Raporu.xlsx");
-    }
-
-    function updateUI() {
-        const totalSpent = data.expenses.reduce((s, e) => s + e.amt, 0);
-        document.getElementById('displayBalance').innerText = (data.balance - totalSpent).toLocaleString() + " ₺";
-
-        const perc = Math.min((totalSpent / data.limit) * 100, 100);
-        document.getElementById('budgetBars').innerHTML = `
-            <div class="budget-item">
-                <div class="budget-info"><span>Genel Limit</span><span>%${perc.toFixed(1)}</span></div>
-                <div class="progress-bg"><div class="progress-fill" style="width:${perc}%; background:${perc > 85 ? '#e74c3c' : '#764ba2'}"></div></div>
+        document.getElementById('valBal').innerText = (myData.bakiye - toplamH).toLocaleString() + " ₺";
+        document.getElementById('valPerc').innerText = "%" + Math.round(yuzdeGenel);
+        
+        document.getElementById('budgetInfo').innerHTML = `
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.9rem;">
+                <span>Harcama: ${toplamH.toLocaleString()} ₺ / ${myData.limit.toLocaleString()} ₺</span>
+                <span>%${Math.round(yuzdeGenel)}</span>
             </div>
+            <div class="prog-bg"><div class="prog-fill" style="width:${yuzdeGenel}%"></div></div>
         `;
 
-        // Harcama listesine Çöp Kutusu butonu eklendi
-        document.getElementById('historyList').innerHTML = data.expenses.map(e => `
+        let currentPos = 0;
+        let gradientParts = [];
+        const cats = ["Yemek", "Ulaşım", "Eğlence", "Diğer"];
+        cats.forEach(c => {
+            const catTotal = myData.harcamalar.filter(x => x.k === c).reduce((t, x) => t + x.m, 0);
+            if(catTotal > 0) {
+                const catPerc = (catTotal / myData.limit) * 100;
+                gradientParts.push(`${colors[c]} ${currentPos}% ${currentPos + catPerc}%`);
+                currentPos += catPerc;
+            }
+        });
+        if (currentPos < 100) gradientParts.push(`${colors["Kalan"]} ${currentPos}% 100%`);
+        document.getElementById('pieChart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+
+        document.getElementById('hList').innerHTML = myData.harcamalar.map(x => `
             <div class="history-item">
-                <div style="flex-grow: 1;">
-                    <b>${e.cat}</b><br><small>${new Date(e.date).toLocaleDateString()}</small>
-                </div>
-                <div style="text-align: right; display: flex; align-items: center;">
-                    <span style="color:#e74c3c; font-weight:bold">-${e.amt} ₺</span>
-                    <button class="delete-btn" onclick="deleteExpense(${e.id})"><i class="fas fa-trash"></i></button>
-                </div>
+                <span><span class="cat-tag" style="background:${colors[x.k]}">${x.k}</span><br><small style="color:#999">${x.d}</small></span>
+                <b style="color:#e74c3c">-${x.m.toLocaleString()} ₺</b>
             </div>
         `).reverse().join('');
     }
 
-    function initCharts() {
-        const pCtx = document.getElementById('pieChart').getContext('2d');
-        pieChart = new Chart(pCtx, { type: 'doughnut', data: { labels: ['Harcama', 'Kalan'], datasets: [{ backgroundColor: ['#e74c3c', '#2ecc71'] }] } });
-        const lCtx = document.getElementById('lineChart').getContext('2d');
-        lineChart = new Chart(lCtx, { type: 'line', data: { labels: [], datasets: [{ label: 'Günlük Harcama', borderColor: '#764ba2', data: [], fill: true, backgroundColor: 'rgba(118, 75, 162, 0.1)' }] } });
-        updateCharts();
+    function openPop(t) {
+        activeType = t;
+        document.getElementById('popTitle').innerText = t === 'bal' ? 'Bakiyeyi Düzenle' : 'Limiti Düzenle';
+        document.getElementById('popInp').value = t === 'bal' ? myData.bakiye : myData.limit;
+        document.getElementById('modalPop').style.display = 'flex';
     }
-
-    function updateCharts() {
-        const totalSpent = data.expenses.reduce((s, e) => s + e.amt, 0);
-        pieChart.data.datasets[0].data = [totalSpent, Math.max(data.balance - totalSpent, 0)];
-        pieChart.update();
-        const last7Days = [...Array(7)].map((_, i) => {
-            const d = new Date(); d.setDate(d.getDate() - i);
-            return d.toISOString().split('T')[0];
-        }).reverse();
-        const dayTotals = last7Days.map(day => {
-            return data.expenses.filter(e => e.date.startsWith(day)).reduce((s, e) => s + e.amt, 0);
-        });
-        lineChart.data.labels = last7Days.map(d => d.split('-')[2] + " Mart");
-        lineChart.data.datasets[0].data = dayTotals;
-        lineChart.update();
+    function closePop() { document.getElementById('modalPop').style.display = 'none'; }
+    function confirmPop() {
+        const val = parseFloat(document.getElementById('popInp').value);
+        if(!isNaN(val)) {
+            if(activeType === 'bal') myData.bakiye = val; else myData.limit = val;
+            updateData(); refreshUI(); closePop();
+        }
     }
-
-    function save() { localStorage.setItem('finData', JSON.stringify(data)); }
+    function updateData() { localStorage.setItem('fin_v_colored_final', JSON.stringify(myData)); }
 </script>
 </body>
 </html>
