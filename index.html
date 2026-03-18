@@ -3,125 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Finans - Renkli Analiz</title>
+    <title>Öğrenci Finans Pro v16</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { 
-            --primary: #764ba2; --secondary: #667eea; --bg: #f8f9fd; 
-            --green: #2ecc71; --cat-yemek: #f39c12; --cat-ulasim: #3498db; 
-            --cat-eglence: #e91e63; --cat-diger: #95a5a6;
+            --primary: #764ba2; --secondary: #667eea; --bg: #f8f9fd; --card: #ffffff;
+            --text: #333333; --subtext: #999999; --border: #eeeeee;
+            --green: #2ecc71; --danger: #e74c3c; --invest: #00cec9;
+            --bg-gelir: #e2fbe9; --bg-yemek: #fce4ec; --bg-kart: #ffebee; --bg-fatura: #e3f2fd; --bg-borc: #fff8e1; --bg-yatirim: #e0f7fa;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); padding: 15px; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
-        .balance-card { background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: white; text-align: center; }
-        .balance-amount { font-size: 2.8rem; font-weight: 800; margin: 10px 0; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .chart-box { display: flex; justify-content: center; align-items: center; min-height: 180px; }
-        .pure-pie {
-            width: 150px; height: 150px; border-radius: 50%;
-            background: var(--green); display: flex; align-items: center; justify-content: center;
-            position: relative; transition: 0.5s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        [data-theme="dark"] {
+            --bg: #121212; --card: #1e1e1e; --text: #ffffff; --subtext: #aaaaaa; --border: #333333;
+            --bg-gelir: #1b3a25; --bg-yemek: #3a1b25; --bg-kart: #3a1b1b; --bg-fatura: #1b2a3a; --bg-borc: #3a321b; --bg-yatirim: #1b3a3a;
         }
-        .pure-pie::after { content: ""; position: absolute; width: 110px; height: 110px; background: white; border-radius: 50%; }
-        .pie-val { position: absolute; z-index: 5; font-weight: 800; font-size: 1.4rem; color: #333; }
-        .prog-bg { background: #eee; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 8px; }
-        .prog-fill { background: var(--primary); height: 100%; width: 0%; transition: 0.5s; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; margin-top: 10px; outline: none; }
-        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; }
-        .cat-tag { padding: 4px 10px; border-radius: 6px; color: white; font-size: 0.75rem; font-weight: bold; }
-        .edit-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.7rem; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(5px); }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; transition: 0.2s; }
+        body { background: var(--bg); padding: 15px; color: var(--text); }
+        
+        .card { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; border: 1px solid var(--border); }
+        .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .stat-card { padding: 18px; border-radius: 24px; color: white; text-align: center; position: relative; }
+        .bg-main { background: linear-gradient(135deg, var(--secondary), var(--primary)); }
+        .bg-invest { background: linear-gradient(135deg, #00b894, #00cec9); }
+        
+        input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 16px; margin-top: 8px; background: var(--card); color: var(--text); outline: none; font-size: 1rem; }
+
+        .custom-select-wrapper { position: relative; margin-top: 8px; cursor: pointer; }
+        .custom-select-trigger { padding: 15px; border: 2px solid var(--border); border-radius: 16px; background: var(--card); color: var(--text); display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .custom-options { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: var(--card); border: 2px solid var(--border); border-radius: 16px; display: none; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .custom-options.open { display: block; }
+        .custom-option { padding: 12px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        
+        .opt-gelir { background-color: var(--bg-gelir); color: #1b5e20; }
+        .opt-yemek { background-color: var(--bg-yemek); color: #880e4f; }
+        .opt-kart { background-color: var(--bg-kart); color: #b71c1c; }
+        .opt-fatura { background-color: var(--bg-fatura); color: #0d47a1; }
+        .opt-borc { background-color: var(--bg-borc); color: #f57f17; }
+        .opt-yatirim { background-color: var(--bg-yatirim); color: #006064; }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 12px; }
+        .pure-pie { width: 130px; height: 130px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; position: relative; margin: 10px auto; }
+        .pure-pie::after { content: ""; position: absolute; width: 95px; height: 95px; background: var(--card); border-radius: 50%; }
+        
+        .history-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); align-items: center; }
+        .cat-tag { padding: 4px 10px; border-radius: 8px; color: white; font-size: 0.65rem; font-weight: bold; }
+        .top-btns { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+        .i-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px; border-radius: 8px; cursor: pointer; }
         .hidden { display: none !important; }
+        
+        /* Modallar */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 28px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
 <div id="setupArea">
     <div class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
-        <h2 style="color:var(--primary)">Finansal Başlangıç</h2>
-        <input type="number" id="startBal" placeholder="Bakiye">
-        <input type="number" id="startLim" placeholder="Harcama Limiti">
+        <h2 style="color:var(--primary); margin-bottom:15px;">Bütçe Kontrolü</h2>
+        <input type="number" id="startBal" placeholder="Nakit Paran (₺)">
+        <input type="number" id="startLim" placeholder="Aylık Hedef Limit (₺)">
+        <input type="number" id="payDay" placeholder="Sıfırlama Günü (Örn: 15)">
         <button class="btn" onclick="initSystem()">Başlat</button>
     </div>
 </div>
 
 <div id="dashArea" class="hidden">
-    <div class="grid">
-        <div class="card balance-card">
-            <button class="edit-btn" onclick="openPop('bal')">DÜZENLE</button>
-            <p>Mevcut Bakiye</p>
-            <div class="balance-amount" id="valBal">0 ₺</div>
-        </div>
-
-        <div class="card">
-            <h3 style="display:flex; justify-content:space-between; align-items:center;">
-                Limit Durumu 
-                <i class="fas fa-cog" style="cursor:pointer; color:#ccc; font-size:1rem;" onclick="openPop('lim')"></i>
-            </h3>
-            <div id="budgetInfo" style="margin-top:15px;"></div>
-        </div>
-
-        <div class="card" style="text-align:center;">
-            <h3>Harcama Analizi</h3>
-            <div class="chart-box">
-                <div class="pure-pie" id="pieChart">
-                    <div class="pie-val" id="valPerc">%0</div>
-                </div>
+    <div class="balance-grid">
+        <div class="stat-card bg-main">
+            <div class="top-btns">
+                <button class="i-btn" onclick="toggleTheme()"><i class="fas fa-adjust"></i></button>
+                <button class="i-btn" onclick="openEdit('bal')"><i class="fas fa-edit"></i></button>
             </div>
+            <small>Net Nakit</small><h2 id="valBal">0 ₺</h2>
+        </div>
+        <div class="stat-card bg-invest">
+            <div class="top-btns"><button class="i-btn" onclick="openEdit('lim')"><i class="fas fa-cog"></i></button></div>
+            <small>Yatırım</small><h2 id="valInvest">0 ₺</h2>
         </div>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h3>Harcama Ekle</h3>
-            <input type="number" id="hMik" placeholder="Miktar (₺)">
-            <select id="hKat">
-                <option value="Yemek">🍔 Yemek</option>
-                <option value="Ulaşım">🚕 Ulaşım</option>
-                <option value="Eğlence">🍿 Eğlence</option>
-                <option value="Diğer">📦 Diğer</option>
-            </select>
-            <button class="btn" onclick="saveExpense()">Kaydet</button>
-        </div>
+    <div class="card">
+        <h3>Limit Durumu</h3>
+        <div id="budgetInfo" style="margin-top:10px; font-weight:bold; font-size:0.9rem; color:var(--subtext);"></div>
+        <div id="dailyTip" style="font-size:0.85rem; padding:15px; background:rgba(118,75,162,0.1); border-radius:14px; color:var(--primary); font-weight:bold; margin-top:10px;"></div>
+    </div>
 
-        <div class="card">
-            <h3>Geçmiş</h3>
-            <div id="hList" style="max-height: 250px; overflow-y: auto;"></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+        <div class="card" style="text-align:center;">
+            <h3>Harcama Analizi</h3>
+            <div class="pure-pie" id="pieChart"><div id="valPerc" style="z-index:5; font-weight:800; font-size:1.4rem;">%0</div></div>
         </div>
+        <div class="card">
+            <h3>İşlem Ekle</h3>
+            <input type="number" id="hMik" placeholder="Miktar (₺)">
+            <div class="custom-select-wrapper" onclick="toggleDropdown()">
+                <div class="custom-select-trigger opt-gelir" id="selectedTrigger"><span>💰 Gelir / Harçlık</span><i class="fas fa-chevron-down"></i></div>
+                <div class="custom-options" id="selectOptions">
+                    <div class="custom-option opt-gelir" onclick="selectOpt('Gelir', '💰 Gelir / Harçlık', 'opt-gelir')">💰 Gelir / Harçlık</div>
+                    <div class="custom-option opt-yemek" onclick="selectOpt('Yemek', '🍔 Yemek / Market', 'opt-yemek')">🍔 Yemek / Market</div>
+                    <div class="custom-option opt-kart" onclick="selectOpt('Kredi Kartı', '💳 Kredi Kartı', 'opt-kart')">💳 Kredi Kartı</div>
+                    <div class="custom-option opt-fatura" onclick="selectOpt('Fatura', '📑 Fatura / Aidat', 'opt-fatura')">📑 Fatura / Aidat</div>
+                    <div class="custom-option opt-borc" onclick="selectOpt('Borçlar', '🤝 Borçlar', 'opt-borc')">🤝 Borçlar</div>
+                    <div class="custom-option opt-yatirim" onclick="selectOpt('Yatırım', '📈 Yatırım', 'opt-yatirim')">📈 Yatırım</div>
+                </div>
+            </div>
+            <input type="hidden" id="hKat" value="Gelir">
+            <button class="btn" onclick="saveExpense()">Harcamayı Kaydet</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>İşlem Geçmişi</h3>
+        <div id="hList" style="max-height: 300px; overflow-y: auto;"></div>
     </div>
 </div>
 
-<div id="modalPop" class="modal">
+<div id="editModal" class="modal">
     <div class="modal-content">
-        <h2 id="popTitle" style="color:var(--primary); margin-bottom:10px;">Düzenle</h2>
-        <input type="number" id="popInp" style="margin-bottom:15px;">
-        <div style="display:flex; gap:10px;">
-            <button class="btn" style="background:#eee; color:#333; margin:0;" onclick="closePop()">Vazgeç</button>
-            <button class="btn" style="margin:0;" onclick="confirmPop()">Kaydet</button>
-        </div>
+        <h3 id="modalTitle" style="margin-bottom:15px;">Düzenle</h3>
+        <input type="number" id="modalInput">
+        <button class="btn" onclick="confirmEdit()">Güncelle</button>
+        <button class="btn" style="background:var(--subtext); margin-top:5px;" onclick="closeModal('editModal')">İptal</button>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
+        <h3 style="margin-bottom:10px;">Emin misin?</h3>
+        <p style="color: var(--subtext); margin-bottom: 20px;">Bu işlem kalıcı olarak silinecektir.</p>
+        <button class="btn" style="background: var(--danger);" id="confirmDeleteBtn">Evet, Sil</button>
+        <button class="btn" style="background: var(--subtext); margin-top:5px;" onclick="closeModal('confirmModal')">Vazgeç</button>
     </div>
 </div>
 
 <script>
-    let myData = JSON.parse(localStorage.getItem('fin_v_colored_final')) || { bakiye: 0, limit: 0, harcamalar: [] };
-    let activeType = '';
-    const colors = { "Yemek": "#f39c12", "Ulaşım": "#3498db", "Eğlence": "#e91e63", "Diğer": "#95a5a6", "Kalan": "#2ecc71" };
+    let myData = JSON.parse(localStorage.getItem('fin_v16')) || { bakiye: 0, limit: 0, payDay: 1, harcamalar: [] };
+    const colors = { "Gelir": "#2ecc71", "Yemek": "#e91e63", "Kredi Kartı": "#e74c3c", "Fatura": "#3498db", "Borçlar": "#f39c12", "Yatırım": "#00cec9", "Kalan": "#2ecc71" };
+    let editT = ''; let deleteId = null;
 
-    if(myData.bakiye > 0) startUI();
+    if(myData.limit > 0) startUI();
 
     function initSystem() {
-        const b = parseFloat(document.getElementById('startBal').value);
-        const l = parseFloat(document.getElementById('startLim').value);
-        if(b > 0) { myData.bakiye = b; myData.limit = l || b; updateData(); startUI(); }
+        myData.bakiye = parseFloat(document.getElementById('startBal').value) || 0;
+        myData.limit = parseFloat(document.getElementById('startLim').value) || 0;
+        myData.payDay = parseInt(document.getElementById('payDay').value) || 1;
+        updateData(); startUI();
     }
 
     function startUI() {
         document.getElementById('setupArea').classList.add('hidden');
         document.getElementById('dashArea').classList.remove('hidden');
         refreshUI();
+    }
+
+    function toggleTheme() {
+        const b = document.body;
+        b.setAttribute('data-theme', b.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+
+    function toggleDropdown() { document.getElementById('selectOptions').classList.toggle('open'); }
+    function selectOpt(val, text, cls) {
+        document.getElementById('hKat').value = val;
+        document.getElementById('selectedTrigger').innerHTML = `<span>${text}</span><i class="fas fa-chevron-down"></i>`;
+        document.getElementById('selectedTrigger').className = 'custom-select-trigger ' + cls;
+        setTimeout(() => document.getElementById('selectOptions').classList.remove('open'), 50);
     }
 
     function saveExpense() {
@@ -134,58 +180,71 @@
         }
     }
 
+    /* Özel Silme Fonksiyonu */
+    function askDelete(id) {
+        deleteId = id;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        myData.harcamalar = myData.harcamalar.filter(x => x.id !== deleteId);
+        updateData(); refreshUI();
+        closeModal('confirmModal');
+    };
+
+    function openEdit(t) {
+        editT = t;
+        document.getElementById('modalTitle').innerText = t === 'bal' ? 'Cüzdan Bakiyesi' : 'Aylık Limit';
+        document.getElementById('modalInput').value = t === 'bal' ? myData.bakiye : myData.limit;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function confirmEdit() {
+        const v = parseFloat(document.getElementById('modalInput').value) || 0;
+        if(editT === 'bal') myData.bakiye = v; else myData.limit = v;
+        updateData(); refreshUI(); closeModal('editModal');
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
     function refreshUI() {
-        const toplamH = myData.harcamalar.reduce((t, x) => t + x.m, 0);
-        const yuzdeGenel = myData.limit > 0 ? Math.min((toplamH / myData.limit) * 100, 100) : 0;
+        const hTop = myData.harcamalar.filter(x => x.k !== 'Yatırım' && x.k !== 'Gelir').reduce((t, x) => t + x.m, 0);
+        const yTop = myData.harcamalar.filter(x => x.k === 'Yatırım').reduce((t, x) => t + x.m, 0);
+        const gTop = myData.harcamalar.filter(x => x.k === 'Gelir').reduce((t, x) => t + x.m, 0);
+        const net = (myData.bakiye + gTop) - hTop - yTop;
+        const yuzde = myData.limit > 0 ? Math.min((hTop / myData.limit) * 100, 100) : 0;
 
-        document.getElementById('valBal').innerText = (myData.bakiye - toplamH).toLocaleString() + " ₺";
-        document.getElementById('valPerc').innerText = "%" + Math.round(yuzdeGenel);
-        
-        document.getElementById('budgetInfo').innerHTML = `
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.9rem;">
-                <span>Harcama: ${toplamH.toLocaleString()} ₺ / ${myData.limit.toLocaleString()} ₺</span>
-                <span>%${Math.round(yuzdeGenel)}</span>
-            </div>
-            <div class="prog-bg"><div class="prog-fill" style="width:${yuzdeGenel}%"></div></div>
-        `;
+        document.getElementById('valBal').innerText = net.toLocaleString() + " ₺";
+        document.getElementById('valInvest').innerText = yTop.toLocaleString() + " ₺";
+        document.getElementById('valPerc').innerText = "%" + Math.round(yuzde);
+        document.getElementById('budgetInfo').innerText = `Harcama: ${hTop.toLocaleString()} ₺ / Limit: ${myData.limit.toLocaleString()} ₺`;
 
-        let currentPos = 0;
-        let gradientParts = [];
-        const cats = ["Yemek", "Ulaşım", "Eğlence", "Diğer"];
-        cats.forEach(c => {
-            const catTotal = myData.harcamalar.filter(x => x.k === c).reduce((t, x) => t + x.m, 0);
-            if(catTotal > 0) {
-                const catPerc = (catTotal / myData.limit) * 100;
-                gradientParts.push(`${colors[c]} ${currentPos}% ${currentPos + catPerc}%`);
-                currentPos += catPerc;
+        const bugun = new Date().getDate();
+        let kalanGun = myData.payDay - bugun;
+        if(kalanGun <= 0) kalanGun += 30;
+        document.getElementById('dailyTip').innerHTML = `<i class="fas fa-wallet"></i> Günlük harcayabileceğin: <b>${(net > 0 ? net/kalanGun : 0).toFixed(0)} ₺</b><br><small>Yenilenmeye ${kalanGun} gün kaldı.</small>`;
+
+        let currentPos = 0; let g = [];
+        ["Yemek", "Kredi Kartı", "Fatura", "Borçlar"].forEach(c => {
+            const catT = myData.harcamalar.filter(x => x.k === c).reduce((t, x) => t + x.m, 0);
+            if(catT > 0 && hTop > 0) {
+                const p = (catT / hTop) * 100;
+                g.push(`${colors[c]} ${currentPos}% ${currentPos + p}%`);
+                currentPos += p;
             }
         });
-        if (currentPos < 100) gradientParts.push(`${colors["Kalan"]} ${currentPos}% 100%`);
-        document.getElementById('pieChart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+        if (currentPos < 100) g.push(`${colors["Kalan"]} ${currentPos}% 100%`);
+        document.getElementById('pieChart').style.background = `conic-gradient(${g.join(', ')})`;
 
         document.getElementById('hList').innerHTML = myData.harcamalar.map(x => `
             <div class="history-item">
-                <span><span class="cat-tag" style="background:${colors[x.k]}">${x.k}</span><br><small style="color:#999">${x.d}</small></span>
-                <b style="color:#e74c3c">-${x.m.toLocaleString()} ₺</b>
-            </div>
-        `).reverse().join('');
+                <span><span class="cat-tag" style="background:${colors[x.k] || '#999'}">${x.k}</span><br><small>${x.d}</small></span>
+                <span><b style="color:${x.k==='Gelir'?'var(--green)':'var(--danger)'}">${x.k==='Gelir'?'+':'-'}${x.m.toLocaleString()} ₺</b>
+                <i class="fas fa-trash-alt" style="margin-left:12px; color:#ddd; cursor:pointer;" onclick="askDelete(${x.id})"></i></span>
+            </div>`).reverse().join('');
     }
 
-    function openPop(t) {
-        activeType = t;
-        document.getElementById('popTitle').innerText = t === 'bal' ? 'Bakiyeyi Düzenle' : 'Limiti Düzenle';
-        document.getElementById('popInp').value = t === 'bal' ? myData.bakiye : myData.limit;
-        document.getElementById('modalPop').style.display = 'flex';
-    }
-    function closePop() { document.getElementById('modalPop').style.display = 'none'; }
-    function confirmPop() {
-        const val = parseFloat(document.getElementById('popInp').value);
-        if(!isNaN(val)) {
-            if(activeType === 'bal') myData.bakiye = val; else myData.limit = val;
-            updateData(); refreshUI(); closePop();
-        }
-    }
-    function updateData() { localStorage.setItem('fin_v_colored_final', JSON.stringify(myData)); }
+    function updateData() { localStorage.setItem('fin_v16', JSON.stringify(myData)); }
 </script>
 </body>
 </html>
